@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FixFinder – Car Diagnosis App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #0d9488;
+      --teal-light: #14b8a6;
+      --teal-pale: #ccfbf1;
+      --teal-bg: #f0fdfa;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --red: #ef4444;
+      --orange: #f97316;
+      --green: #22c55e;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+      --shadow-lg: 0 10px 40px rgba(0,0,0,.10);
+      --radius: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #fff;
+      color: var(--gray-800);
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 24px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      font-size: 1.3rem; font-weight: 800;
+      color: var(--teal);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .logo span { color: var(--gray-900); }
+    .nav-links { display: flex; gap: 24px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; color: var(--gray-600);
+      font-size: .9rem; font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta {
+      background: var(--teal); color: #fff;
+      border: none; border-radius: 8px;
+      padding: 8px 20px; font-size: .88rem;
+      font-weight: 600; cursor: pointer;
+      transition: background .2s, transform .1s;
+      text-decoration: none;
+    }
+    .nav-cta:hover { background: var(--teal-light); transform: translateY(-1px); }
+    @media(max-width:600px){ .nav-links { display: none; } }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, var(--teal-bg) 0%, #fff 60%);
+      padding: 80px 24px 60px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--teal-pale); color: var(--teal);
+      padding: 6px 14px; border-radius: 999px;
+      font-size: .8rem; font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 800; color: var(--gray-900);
+      line-height: 1.15; margin-bottom: 16px;
+    }
+    .hero h1 em { color: var(--teal); font-style: normal; }
+    .hero p {
+      font-size: 1.1rem; color: var(--gray-600);
+      max-width: 520px; margin: 0 auto 36px;
+    }
+
+    /* DIAGNOSIS CARD */
+    .diag-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 28px;
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .diag-textarea {
+      width: 100%;
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: inherit;
+      font-size: 1rem;
+      color: var(--gray-800);
+      resize: vertical; min-height: 90px;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    .diag-textarea:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(13,148,136,.15);
+    }
+    .filters {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-top: 14px;
+    }
+    @media(max-width:480px){ .filters { grid-template-columns: 1fr; } }
+    .filter-select {
+      width: 100%; border: 2px solid var(--gray-200);
+      border-radius: 10px; padding: 10px 12px;
+      font-family: inherit; font-size: .9rem;
+      color: var(--gray-600); background: var(--gray-50);
+      outline: none; cursor: pointer;
+      transition: border-color .2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239ca3af' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+    .filter-select:focus { border-color: var(--teal); }
+    .diag-btn {
+      margin-top: 16px; width: 100%;
+      background: var(--teal); color: #fff;
+      border: none; border-radius: 12px;
+      padding: 14px; font-family: inherit;
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center; gap: 8px;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 14px rgba(13,148,136,.35);
+    }
+    .diag-btn:hover { background: #0f766e; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(13,148,136,.4); }
+    .diag-btn:active { transform: translateY(0); }
+
+    /* RESULT */
+    #result-section {
+      max-width: 680px; margin: 24px auto 0;
+      padding: 0 24px;
+      opacity: 0; transform: translateY(16px);
+      transition: opacity .4s, transform .4s;
+      pointer-events: none;
+    }
+    #result-section.visible {
+      opacity: 1; transform: translateY(0);
+      pointer-events: auto;
+    }
+    .result-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 24px;
+      border-left: 5px solid var(--teal);
+    }
+    .result-header {
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .result-title { font-size: 1.2rem; font-weight: 700; color: var(--gray-900); }
+    .urgency-badge {
+      padding: 5px 14px; border-radius: 999px;
+      font-size: .8rem; font-weight: 700; letter-spacing: .03em;
+    }
+    .urgency-low { background: #dcfce7; color: #15803d; }
+    .urgency-medium { background: #ffedd5; color: #c2410c; }
+    .urgency-high { background: #fee2e2; color: #b91c1c; }
+
+    .result-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 16px;
+    }
+    @media(max-width:480px){ .result-grid { grid-template-columns: 1fr; } }
+    .result-item {
+      background: var(--gray-50);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .result-item-label {
+      font-size: .75rem; font-weight: 600;
+      color: var(--gray-400); text-transform: uppercase;
+      letter-spacing: .05em; margin-bottom: 4px;
+    }
+    .result-item-value { font-size: .95rem; font-weight: 600; color: var(--gray-800); }
+    .result-explanation {
+      font-size: .92rem; color: var(--gray-600);
+      line-height: 1.65; margin-bottom: 14px;
+    }
+    .result-advice {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--teal-pale); border-radius: 10px;
+      padding: 10px 14px; font-size: .88rem;
+      font-weight: 600; color: var(--teal);
+    }
+
+    /* SECTION WRAPPER */
+    section { padding: 72px 24px; }
+    .section-label {
+      font-size: .78rem; font-weight: 700;
+      color: var(--teal); text-transform: uppercase;
+      letter-spacing: .1em; margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 800; color: var(--gray-900);
+      margin-bottom: 12px;
+    }
+    .section-sub {
+      font-size: 1rem; color: var(--gray-600);
+      max-width: 480px;
+    }
+    .section-head { margin-bottom: 40px; }
+
+    /* COMMON PROBLEMS */
+    #common { background: var(--gray-50); }
+    .problems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px; max-width: 960px; margin: 0 auto;
+    }
+    .problem-card {
+      background: #fff; border-radius: var(--radius);
+      padding: 24px; box-shadow: var(--shadow-sm);
+      cursor: pointer; border: 2px solid transparent;
+      transition: border-color .2s, box-shadow .2s, transform .2s;
+    }
+    .problem-card:hover {
+      border-color: var(--teal);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-4px);
+    }
+    .problem-icon {
+      width: 48px; height: 48px;
+      background: var(--teal-pale); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 14px;
+    }
+    .problem-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .problem-card p { font-size: .85rem; color: var(--gray-600); line-height: 1.55; }
+    .problem-tag {
+      display: inline-block; margin-top: 10px;
+      font-size: .75rem; font-weight: 600;
+      padding: 3px 10px; border-radius: 999px;
+    }
+
+    /* TRUST */
+    #trust { background: #fff; }
+    .trust-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 24px; max-width: 960px; margin: 0 auto;
+    }
+    .trust-item {
+      display: flex; flex-direction: column;
+      gap: 10px;
+    }
+    .trust-icon {
+      width: 44px; height: 44px;
+      background: var(--teal-pale); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .trust-item h4 { font-size: 1rem; font-weight: 700; }
+    .trust-item p { font-size: .88rem; color: var(--gray-600); line-height: 1.6; }
+
+    /* STATS */
+    #stats {
+      background: linear-gradient(135deg, var(--teal) 0%, #0f766e 100%);
+      padding: 60px 24px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 24px; max-width: 800px; margin: 0 auto;
+      text-align: center;
+    }
+    .stat-item h2 { font-size: 2.4rem; font-weight: 800; color: #fff; }
+    .stat-item p { font-size: .9rem; color: rgba(255,255,255,.75); margin-top: 4px; }
+
+    /* CTA */
+    #cta {
+      background: var(--teal-bg);
+      text-align: center; padding: 80px 24px;
+    }
+    #cta h2 {
+      font-size: clamp(1.8rem,4vw,2.6rem);
+      font-weight: 800; color: var(--gray-900); margin-bottom: 12px;
+    }
+    #cta p { font-size: 1rem; color: var(--gray-600); margin-bottom: 32px; }
+    .cta-btn {
+      background: var(--teal); color: #fff;
+      border: none; border-radius: 12px;
+      padding: 16px 40px; font-family: inherit;
+      font-size: 1.05rem; font-weight: 700;
+      cursor: pointer; box-shadow: 0 4px 20px rgba(13,148,136,.4);
+      transition: background .2s, transform .15s;
+    }
+    .cta-btn:hover { background: #0f766e; transform: translateY(-2px); }
+
+    /* FOOTER */
+    footer {
+      background: var(--gray-900);
+      color: rgba(255,255,255,.5);
+      padding: 32px 24px;
+      text-align: center;
+      font-size: .85rem;
+    }
+    footer .footer-logo {
+      font-size: 1.2rem; font-weight: 800;
+      color: var(--teal-light); margin-bottom: 8px;
+    }
+    footer p { margin-top: 4px; }
+    footer a { color: rgba(255,255,255,.45); text-decoration: none; }
+    footer a:hover { color: var(--teal-light); }
+
+    /* LOADER */
+    .loader {
+      display: inline-block; width: 18px; height: 18px;
+      border: 3px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* SCROLL ANIMATIONS */
+    .fade-up {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity .5s ease, transform .5s ease;
+    }
+    .fade-up.in-view { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">🔧 <span>Fix<span style="color:var(--teal)">Finder</span></span></div>
+  <ul class="nav-links">
+    <li><a href="#common">Common Issues</a></li>
+    <li><a href="#trust">Why FixFinder</a></li>
+  </ul>
+  <a href="#hero" class="nav-cta">Diagnose Now</a>
+</nav>
+
+<!-- HERO -->
+<div id="hero" class="hero">
+  <div class="hero-badge">⚡ Instant Car Diagnosis</div>
+  <h1>What's Wrong With<br/><em>Your Car?</em></h1>
+  <p>Describe the issue and get a quick diagnosis in seconds — no mechanic needed.</p>
+
+  <div class="diag-card">
+    <textarea id="symptom-input" class="diag-textarea"
+      placeholder="E.g. Clicking noise when turning, car won't start in the morning, grinding when braking…"></textarea>
+    <div class="filters">
+      <select id="noise-type" class="filter-select">
+        <option value="">🔊 Noise Type (optional)</option>
+        <option value="clicking">Clicking</option>
+        <option value="grinding">Grinding</option>
+        <option value="squealing">Squealing</option>
+        <option value="knocking">Knocking</option>
+        <option value="rattling">Rattling</option>
+        <option value="hissing">Hissing</option>
+      </select>
+      <select id="when-happens" class="filter-select">
+        <option value="">⏱ When It Happens (optional)</option>
+        <option value="starting">Starting the car</option>
+        <option value="braking">While braking</option>
+        <option value="turning">While turning</option>
+        <option value="accelerating">While accelerating</option>
+        <option value="idle">At idle / parked</option>
+        <option value="highway">At highway speed</option>
+      </select>
+    </div>
+    <button class="diag-btn" id="diag-btn" onclick="diagnose()">
+      <span id="btn-text">🔍 Diagnose Problem</span>
+    </button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result-section">
+  <div class="result-card" id="result-card">
+    <div class="result-header">
+      <div class="result-title" id="result-issue">Worn CV Joint</div>
+      <span class="urgency-badge" id="result-urgency">Medium</span>
+    </div>
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="result-item-label">Estimated Repair Cost</div>
+        <div class="result-item-value" id="result-cost">$150 – $400</div>
+      </div>
+      <div class="result-item">
+        <div class="result-item-label">Affected Component</div>
+        <div class="result-item-value" id="result-component">CV Axle / Joint</div>
+      </div>
+    </div>
+    <div class="result-explanation" id="result-explanation">
+      A clicking noise when turning is a classic sign of a worn CV (constant velocity) joint. This joint transfers power from the transmission to the wheels. When it wears out, it loses lubrication and produces that clicking sound — especially on tight turns.
+    </div>
+    <div class="result-advice" id="result-advice">
+      💡 Safe to drive short distances, but get it checked within 2–3 weeks.
+    </div>
+  </div>
+</div>
+
+<!-- COMMON PROBLEMS -->
+<section id="common">
+  <div class="section-head fade-up" style="max-width:960px;margin:0 auto;">
+    <div class="section-label">Quick Diagnose</div>
+    <h2 class="section-title">Common Car Problems</h2>
+    <p class="section-sub">Tap any issue below for an instant diagnosis.</p>
+  </div>
+  <div class="problems-grid">
+    <div class="problem-card fade-up" onclick="quickDiagnose('check-engine')">
+      <div class="problem-icon">⚠️</div>
+      <h3>Check Engine Light</h3>
+      <p>Dashboard warning light is on. Could range from a loose gas cap to a serious engine issue.</p>
+      <span class="problem-tag urgency-medium">Medium Priority</span>
+    </div>
+    <div class="problem-card fade-up" onclick="quickDiagnose('brake-noise')">
+      <div class="problem-icon">🛑</div>
+      <h3>Brake Noise</h3>
+      <p>Squealing or grinding sounds when you apply the brakes. Often indicates worn brake pads.</p>
+      <span class="problem-tag urgency-high">High Priority</span>
+    </div>
+    <div class="problem-card fade-up" onclick="quickDiagnose('overheating')">
+      <div class="problem-icon">🌡️</div>
+      <h3>Engine Overheating</h3>
+      <p>Temperature gauge is in the red or steam coming from the hood. Stop driving immediately.</p>
+      <span class="problem-tag urgency-high">High Priority</span>
+    </div>
+    <div class="problem-card fade-up" onclick="quickDiagnose('wont-start')">
+      <div class="problem-icon">🔋</div>
+      <h3>Car Won't Start</h3>
+      <p>Engine cranks but won't fire, or completely silent when you turn the key.</p>
+      <span class="problem-tag urgency-medium">Medium Priority</span>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="stats-grid">
+    <div class="stat-item fade-up">
+      <h2>50+</h2>
+      <p>Car issues diagnosed</p>
+    </div>
+    <div class="stat-item fade-up">
+      <h2>2 sec</h2>
+      <p>Average diagnosis time</p>
+    </div>
+    <div class="stat-item fade-up">
+      <h2>$0</h2>
+      <p>Cost to use FixFinder</p>
+    </div>
+    <div class="stat-item fade-up">
+      <h2>92%</h2>
+      <p>User satisfaction rate</p>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section id="trust">
+  <div class="section-head fade-up" style="max-width:960px;margin:0 auto;">
+    <div class="section-label">Why FixFinder</div>
+    <h2 class="section-title">Save Time. Save Money.<br/>Get Answers Fast.</h2>
+  </div>
+  <div class="trust-grid" style="max-width:960px;margin:0 auto;">
+    <div class="trust-item fade-up">
+      <div class="trust-icon">💰</div>
+      <h4>Saves You Money</h4>
+      <p>Know what's wrong before you visit a mechanic. Avoid being overcharged for unnecessary repairs.</p>
+    </div>
+    <div class="trust-item fade-up">
+      <div class="trust-icon">⚡</div>
+      <h4>Lightning Fast Answers</h4>
+      <p>No waiting rooms, no appointments. Get a diagnosis in seconds, right from your phone.</p>
+    </div>
+    <div class="trust-item fade-up">
+      <div class="trust-icon">🧠</div>
+      <h4>Smart Symptom Matching</h4>
+      <p>Our diagnosis engine maps your symptoms to the most likely causes with clear explanations.</p>
+    </div>
+    <div class="trust-item fade-up">
+      <div class="trust-icon">🔒</div>
+      <h4>No Sign-Up Needed</h4>
+      <p>Just describe your problem and go. No account, no email, no hassle.</p>
+    </div>
+    <div class="trust-item fade-up">
+      <div class="trust-icon">🚗</div>
+      <h4>Works For All Cars</h4>
+      <p>Sedans, trucks, SUVs, hybrids — our database covers all major makes and models.</p>
+    </div>
+    <div class="trust-item fade-up">
+      <div class="trust-icon">📱</div>
+      <h4>Mobile First</h4>
+      <p>Designed for the side of the road. Works perfectly on any phone, tablet, or desktop.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <h2 class="fade-up">Get Answers Instantly</h2>
+  <p class="fade-up">Stop guessing. Start fixing. FixFinder is free, fast, and always available.</p>
+  <button class="cta-btn fade-up" onclick="document.getElementById('symptom-input').focus(); document.getElementById('hero').scrollIntoView({behavior:'smooth'})">
+    🔍 Try It Now — It's Free
+  </button>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">🔧 FixFinder</div>
+  <p>Your instant car diagnosis companion.</p>
+  <p style="margin-top:12px;">
+    <a href="#">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="#">Terms of Use</a> &nbsp;·&nbsp;
+    <a href="#">Contact</a>
+  </p>
+  <p style="margin-top:16px;">© 2025 FixFinder. For informational purposes only. Always consult a qualified mechanic.</p>
+</footer>
+
+<script>
+// ─── DIAGNOSIS DATABASE ───────────────────────────────────────────────────
+const diagnosisDB = [
+  {
+    keywords: ['clicking','turning','cv','axle'],
+    issue: 'Worn CV Joint',
+    urgency: 'medium',
+    cost: '$150 – $400',
+    component: 'CV Axle / Joint',
+    explanation: 'A clicking noise when turning is a classic sign of a worn CV (constant velocity) joint. This joint transfers power from the transmission to the wheels. When the protective boot tears, grease escapes and the joint wears rapidly.',
+    advice: '💡 Safe to drive short distances, but get it checked within 2–3 weeks.'
+  },
+  {
+    keywords: ['grinding','braking','brake','squeal','squealing','screech'],
+    issue: 'Worn Brake Pads / Rotors',
+    urgency: 'high',
+    cost: '$150 – $600',
+    component: 'Brake Pads & Rotors',
+    explanation: 'Grinding or squealing when braking usually means your brake pads are worn down to the metal wear indicators or beyond. Continued driving can damage the rotors and significantly increase repair costs.',
+    advice: '🚨 Do not ignore — book a brake inspection immediately.'
+  },
+  {
+    keywords: ['knocking','engine','accelerating','acceleration'],
+    issue: 'Engine Knock (Pre-ignition)',
+    urgency: 'high',
+    cost: '$200 – $2,500+',
+    component: 'Engine / Fuel System',
+    explanation: 'A knocking or pinging from the engine during acceleration often indicates improper combustion (knock/ping). Causes include low-octane fuel, carbon buildup, or failing knock sensors. In severe cases it can indicate rod bearing wear.',
+    advice: '🚨 Reduce load on engine and have it inspected as soon as possible.'
+  },
+  {
+    keywords: ['check engine','warning light','dashboard','light','cel'],
+    issue: 'Check Engine / OBD Fault',
+    urgency: 'medium',
+    cost: '$50 – $500+ (varies)',
+    component: 'Engine / Emissions System',
+    explanation: 'The check engine light can trigger for dozens of reasons — from a loose gas cap to a faulty O2 sensor, misfiring cylinder, or catalytic converter issue. A free OBD-II scan at most auto parts stores will reveal the exact fault code.',
+    advice: '💡 Get a free OBD scan. If light is flashing, pull over and stop driving immediately.'
+  },
+  {
+    keywords: ['overheat','overheating','temperature','hot','steam','smoke','radiator'],
+    issue: 'Engine Overheating',
+    urgency: 'high',
+    cost: '$150 – $1,500+',
+    component: 'Cooling System',
+    explanation: 'Overheating is caused by coolant loss, a failed thermostat, a broken water pump, or a clogged radiator. Continuing to drive an overheated engine can cause catastrophic damage like a warped cylinder head or blown head gasket.',
+    advice: '🚨 Pull over immediately, turn off the engine. Do not open the radiator cap when hot.'
+  },
+  {
+    keywords: ["won't start","wont start","doesn't start","doesnt start","not starting","dead","no start","cranks","crank"],
+    issue: 'Starting Failure — Battery / Starter',
+    urgency: 'medium',
+    cost: '$100 – $600',
+    component: 'Battery / Starter Motor / Alternator',
+    explanation: 'If the engine cranks slowly or not at all, the most common culprits are a weak battery, loose battery terminals, a failing starter motor, or a bad alternator that didn\'t charge the battery. A click-click with no crank typically points to the battery or connections.',
+    advice: '💡 Try jump-starting. If it starts, get the battery & alternator tested right away.'
+  },
+  {
+    keywords: ['vibration','shaking','vibrate','shake','steering wheel'],
+    issue: 'Wheel Balance / Suspension Issue',
+    urgency: 'low',
+    cost: '$50 – $300',
+    component: 'Wheels / Suspension / Tires',
+    explanation: 'Vibration felt through the steering wheel or seat often indicates unbalanced wheels, a bent rim, worn tie rods, or failing CV axles. Vibration at specific speeds typically points to wheel balance, while constant shaking may indicate worn suspension components.',
+    advice: '💡 Generally safe to drive short-term. Schedule a wheel balance and alignment check.'
+  },
+  {
+    keywords: ['smoke','burning','smell','odor','fumes'],
+    issue: 'Oil / Fluid Burn or Leak',
+    urgency: 'high',
+    cost: '$100 – $800+',
+    component: 'Engine Seals / Gaskets',
+    explanation: 'A burning smell or visible smoke (blue = oil burning; white = coolant/head gasket; grey = transmission fluid) indicates a fluid leak onto hot engine components. This can signal worn valve seals, a blown head gasket, or a transmission fluid leak.',
+    advice: '🚨 Check fluid levels. If smoke is heavy, stop driving and seek help immediately.'
+  },
+  {
+    keywords: ['stall','stalling','stalls','dies','cutting out','rough idle'],
+    issue: 'Engine Stalling / Rough Idle',
+    urgency: 'medium',
+    cost: '$80 – $500',
+    component: 'Fuel / Ignition / Sensors',
+    explanation: 'Stalling or rough idling is usually caused by a dirty throttle body, a faulty idle air control valve, a bad mass airflow (MAF) sensor, clogged fuel injectors, or spark plug issues. The engine doesn\'t receive the right air/fuel mixture to run smoothly.',
+    advice: '💡 Get an OBD scan and fuel system inspection soon. Car may not be reliable for long trips.'
+  },
+  {
+    keywords: ['flat','tyre','tire','puncture','pressure','deflate'],
+    issue: 'Tyre Pressure / Puncture',
+    urgency: 'high',
+    cost: '$20 – $200',
+    component: 'Tyre / Wheel',
+    explanation: 'Low tyre pressure or a puncture causes poor handling, increased fuel consumption, and risk of a blowout. TPMS warning lights indicate pressure is 25%+ below recommended. Even a slow puncture can rapidly deteriorate at highway speeds.',
+    advice: '🚨 Pull over safely if handling is affected. Check tyre pressure or inspect for nails/damage.'
+  }
+];
+
+const fallbackResult = {
+  issue: 'General Mechanical Issue',
+  urgency: 'medium',
+  cost: '$50 – $500 (varies)',
+  component: 'Various Systems',
+  explanation: 'Based on your description, this could relate to several different systems. We recommend getting a free OBD-II diagnostic scan at your local auto parts store for specific fault codes, and describing your symptoms in more detail for a more precise diagnosis.',
+  advice: '💡 Document when and how the issue occurs and consult a trusted mechanic.'
+};
+
+const quickDiagnosisMap = {
+  'check-engine': diagnosisDB[3],
+  'brake-noise':  diagnosisDB[1],
+  'overheating':  diagnosisDB[4],
+  'wont-start':   diagnosisDB[5]
+};
+
+function matchDiagnosis(text) {
+  const lower = text.toLowerCase();
+  let bestMatch = null, bestScore = 0;
+  for (const entry of diagnosisDB) {
+    const score = entry.keywords.filter(k => lower.includes(k)).length;
+    if (score > bestScore) { bestScore = score; bestMatch = entry; }
+  }
+  return bestScore > 0 ? bestMatch : null;
+}
+
+function showResult(data) {
+  document.getElementById('result-issue').textContent = data.issue;
+  document.getElementById('result-cost').textContent = data.cost;
+  document.getElementById('result-component').textContent = data.component;
+  document.getElementById('result-explanation').textContent = data.explanation;
+  document.getElementById('result-advice').textContent = data.advice;
+
+  const badge = document.getElementById('result-urgency');
+  badge.textContent = data.urgency.charAt(0).toUpperCase() + data.urgency.slice(1) + ' Urgency';
+  badge.className = 'urgency-badge urgency-' + data.urgency;
+
+  const card = document.getElementById('result-card');
+  card.style.borderLeftColor = data.urgency === 'high' ? '#ef4444' : data.urgency === 'medium' ? '#f97316' : '#22c55e';
+
+  const section = document.getElementById('result-section');
+  section.classList.add('visible');
+  setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+function diagnose() {
+  const input = document.getElementById('symptom-input').value.trim();
+  const noise = document.getElementById('noise-type').value;
+  const when  = document.getElementById('when-happens').value;
+
+  if (!input && !noise && !when) {
+    document.getElementById('symptom-input').focus();
+    document.getElementById('symptom-input').style.borderColor = '#ef4444';
+    setTimeout(() => document.getElementById('symptom-input').style.borderColor = '', 1500);
+    return;
+  }
+
+  // Loading state
+  const btn = document.getElementById('diag-btn');
+  const btnText = document.getElementById('btn-text');
+  btn.disabled = true;
+  btnText.innerHTML = '<span class="loader"></span> Analysing…';
+
+  setTimeout(() => {
+    const combined = `${input} ${noise} ${when}`;
+    const result = matchDiagnosis(combined) || fallbackResult;
+    showResult(result);
+    btn.disabled = false;
+    btnText.textContent = '🔍 Diagnose Problem';
+  }, 900);
+}
+
+function quickDiagnose(key) {
+  const data = quickDiagnosisMap[key];
+  if (!data) return;
+  document.getElementById('hero').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => showResult(data), 400);
+}
+
+// Allow Enter key in textarea (Shift+Enter = newline)
+document.getElementById('symptom-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); diagnose(); }
+});
+
+// ─── SCROLL ANIMATIONS ────────────────────────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('in-view'), i * 80);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
